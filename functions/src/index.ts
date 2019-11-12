@@ -2,10 +2,9 @@ import * as functions from 'firebase-functions';
 import admin = require('firebase-admin');
 admin.initializeApp();
 const db = admin.database();
-const ref = db.ref("/TechAuth20191016/ALLUSERS");
 
 // FIREBASE URL: https://us-central1-simpleappauthenticator.cloudfunctions.net/simpleDbFunction
-// FIREBASE REALTIMEDATABASE URL: https://simpleappauthenticator.firebaseio.com/TechAuth20191016
+// FIREBASE REALTIMEDATABASE URL: https://simpleappauthenticator.firebaseio.com
 // // Start writing Firebase Functions
 // // https://firebase.google.com/docs/functions/typescript
 //
@@ -14,18 +13,21 @@ const ref = db.ref("/TechAuth20191016/ALLUSERS");
 // });
 
 exports.simpleDbFunction = functions.https.onRequest(async (_,res: any) => {
-    ref.once("value", function(data) {
+    db.ref("users").once("value", function(data) {
       //do some stuff once
       const re = /\"/gi;
       let ALLUSERSSTR = data.val();
+      if (ALLUSERSSTR === null){
+          res.send("null type")
+      }
       ALLUSERSSTR = ALLUSERSSTR.replace("[","");
       ALLUSERSSTR = ALLUSERSSTR.replace("]","");
       ALLUSERSSTR = ALLUSERSSTR.replace(re,"");
       const ALLUSERSARRAY = ALLUSERSSTR.split(",");
       for (const USERNUM of ALLUSERSARRAY){
-          const REFDAY = db.ref("/TechAuth20191016/" + `${USERNUM}`+ "DATEDAY");
-          const REFMONTH = db.ref("/TechAuth20191016/" + `${USERNUM}`+ "DATEMONTH");
-          const REFYEAR = db.ref("/TechAuth20191016/" + `${USERNUM}`+ "DATEYEAR");
+          const REFDAY = db.ref(`${USERNUM}`+ "DATEDAY");
+          const REFMONTH = db.ref(`${USERNUM}`+ "DATEMONTH");
+          const REFYEAR = db.ref(`${USERNUM}`+ "DATEYEAR");
           const CURRENTDATE = (new Date()).getTime();
           enum DATEDUE {No, Soon, Yes};
           REFDAY.once("value",function(day){
@@ -87,8 +89,8 @@ exports.simpleDbFunction = functions.https.onRequest(async (_,res: any) => {
                   }
                   DATEDUESTR = DATEDUESTR.slice(0, -1);
                   DATEDUESTR += "]"
-                  db.ref("/TechAuth20191016/" + `${USERNUM}`+ "FULLDATE").set(FULLDATESTR).catch(err => console.log(err));
-                  db.ref("/TechAuth20191016/" + `${USERNUM}`+ "DATEDUE").set(DATEDUESTR).then(res.send("SUCCESS")).catch(err => console.log(err));
+                  db.ref(`${USERNUM}`+ "FULLDATE").set(FULLDATESTR).catch(err => console.log(err));
+                  db.ref(`${USERNUM}`+ "DATEDUE").set(DATEDUESTR).then(res.send("SUCCESS")).catch(err => console.log(err));
                 }).catch(err => console.log(err));;
               }).catch(err => console.log(err));;
             }
